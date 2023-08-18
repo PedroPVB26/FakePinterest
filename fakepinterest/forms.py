@@ -3,6 +3,7 @@ from flask_wtf.file import FileAllowed
 from wtforms import StringField, PasswordField, SubmitField, FileField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 from fakepinterest.models import Usuario
+from fakepinterest import bcrypt
 
 class FormLogin(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()])
@@ -13,6 +14,12 @@ class FormLogin(FlaskForm):
         usuario = Usuario.query.filter_by(email=email.data).first()
         if not usuario:
             raise ValidationError("Email não cadastrado, crie uma conta")
+
+    def validate_senha(self, field):
+        usuario = Usuario.query.filter_by(email=self.email.data).first()
+        if bcrypt.check_password_hash(usuario.senha, self.senha.data) == False:
+            raise ValidationError("Senha Incorreta")
+
 
 class FormCadastro(FlaskForm):
     username = StringField("Nome de Usuário", validators=[DataRequired()])
